@@ -15,7 +15,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
 A gateway that allows more secure user access to CGI programs on an
-HTTPd server than is provided by the http server itself. The primary
+HTTPd server than is provided by the HTTP server itself. The primary
 function of CGIwrap is to make certain that any CGI script runs with
 the permissions of the user who installed it, and not those of the
 server.
