@@ -52,7 +52,6 @@ ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/cgiwrapd
 ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/nph-cgiwrap
 ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/nph-cgiwrapd
 ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/php-cgiwrap
-ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/cgiwrapd
 ln -s cgiwrap $RPM_BUILD_ROOT%{_cgibindir}/php-cgiwrapd
 
 %clean
