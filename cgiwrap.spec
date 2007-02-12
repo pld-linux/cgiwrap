@@ -1,5 +1,5 @@
 Summary:	A gateway for more secure user access to CGI scripts
-Summary(pl.UTF-8):   Bramka do bezpieczniejszego dostępu użytkowników do skryptów CGI
+Summary(pl.UTF-8):	Bramka do bezpieczniejszego dostępu użytkowników do skryptów CGI
 Name:		cgiwrap
 Version:	3.9
 Release:	1
