@@ -1,5 +1,5 @@
 Summary:	A gateway for more secure user access to CGI scripts
-Summary(pl):	Bramka do bezpieczniejszego dostêpu u¿ytkowników do skryptów CGI
+Summary(pl.UTF-8):   Bramka do bezpieczniejszego dostÄ™pu uÅ¼ytkownikÃ³w do skryptÃ³w CGI
 Name:		cgiwrap
 Version:	3.9
 Release:	1
@@ -20,11 +20,11 @@ function of CGIwrap is to make certain that any CGI script runs with
 the permissions of the user who installed it, and not those of the
 server.
 
-%description -l pl
-Bramka pozwalaj±ca na bardziej bezpieczny dostêp u¿ytkowników do
-programów CGI na serwerze HTTP ni¿ ten udostêpniany przez sam serwer
-HTTP. G³ówna funkcja CGIwrap to upewnienie siê, ¿e skrypt CGI dzia³a z
-uprawnieniami u¿ytkownika, który go zainstalowa³, a nie serwera.
+%description -l pl.UTF-8
+Bramka pozwalajÄ…ca na bardziej bezpieczny dostÄ™p uÅ¼ytkownikÃ³w do
+programÃ³w CGI na serwerze HTTP niÅ¼ ten udostÄ™pniany przez sam serwer
+HTTP. GÅ‚Ã³wna funkcja CGIwrap to upewnienie siÄ™, Å¼e skrypt CGI dziaÅ‚a z
+uprawnieniami uÅ¼ytkownika, ktÃ³ry go zainstalowaÅ‚, a nie serwera.
 
 %prep
 %setup -q
