@@ -1,12 +1,12 @@
 Summary:	A gateway for more secure user access to CGI scripts
 Summary(pl.UTF-8):	Bramka do bezpieczniejszego dostępu użytkowników do skryptów CGI
 Name:		cgiwrap
-Version:	3.9
+Version:	4.0
 Release:	1
 License:	GPL
 Group:		Utilities
 Source0:	http://dl.sourceforge.net/cgiwrap/%{name}-%{version}.tar.gz
-# Source0-md5:	0f9c88802658f45231ee463c351bd2a7
+# Source0-md5:	91082c17e948b0e4ee158ddb6a7c5d00
 URL:		http://cgiwrap.sourceforge.net/
 BuildRequires:	automake
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
