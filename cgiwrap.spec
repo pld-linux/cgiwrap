@@ -2,12 +2,13 @@ Summary:	A gateway for more secure user access to CGI scripts
 Summary(pl.UTF-8):	Bramka do bezpieczniejszego dostępu użytkowników do skryptów CGI
 Name:		cgiwrap
 Version:	4.1
-Release:	2
+Release:	3
 License:	GPL
 Group:		Utilities
 Source0:	http://dl.sourceforge.net/cgiwrap/%{name}-%{version}.tar.gz
 # Source0-md5:	14c02c57e4a0c6224951018e2f6b9211
 Patch0:		%{name}-php.patch
+Patch1:		%{name}-fetch.patch
 URL:		http://cgiwrap.sourceforge.net/
 BuildRequires:	automake
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -30,6 +31,7 @@ uprawnieniami użytkownika, który go zainstalował, a nie serwera.
 %prep
 %setup -q
 %patch0 -p0
+%patch1 -p0
 
 %build
 install %{_datadir}/automake/config.* .
@@ -44,7 +46,7 @@ install %{_datadir}/automake/config.* .
 	--with-block-cvs-paths \
 	--with-php-interpreter \
 	--with-soft-rlimit-only \
-	--with-cgi-dir=./ \
+	--with-cgi-dir=public_html \
 	--without-check-group
 
 %{__make}
