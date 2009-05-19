@@ -1,0 +1,62 @@
+--- fetch.c	2008-06-16 16:34:37.000000000 +0200
++++ fetch.c.new	2009-05-19 02:35:48.473000809 +0200
+@@ -30,18 +30,34 @@
+ 	char *pathInfoString;
+ 	char *queryString;
+ 	char *userStr;
++	char *pch;
++	char *p[3];
++	int i=0;
+ 
+ 	DEBUG_Msg("\n");
+ 
+ 	userStr = (char *) 0;
+-	pathInfoString = getenv("PATH_INFO");
++	//pathInfoString = getenv("PATH_INFO");
++	pathInfoString = getenv("PATH_TRANSLATED");
+ 	if ( pathInfoString )  /* use PATH_INFO */
+ 	{
+ 		if ( pathInfoString[0] != 0 )
+ 		{
+-			DEBUG_Msg("Trying to extract user from PATH_INFO.");
++			DEBUG_Msg("Trying to extract user from PATH_TRANSLATED.");
++
++			userStr = GetPathComponents(3, pathInfoString);
++		DEBUG_Str("userstr1", userStr);
++
++			pch = strtok(userStr, "/");
++
++			while (pch != NULL) {
++				p[i] = pch;
++				pch = strtok (NULL, "/");
++				i++;
++			}
+ 
+-			userStr = GetPathComponents(1, pathInfoString);
++			userStr = p[2];
++		DEBUG_Str("userstr2", userStr);
+ 		}
+ 		else
+ 		{
+@@ -68,9 +84,10 @@
+ /* Handle ~ notation */
+ 	if (userStr)
+ 	{
+-		if (userStr[0] == '~')
++		DEBUG_Str("userstr3", userStr);
++		if (userStr[0] == 'home')
+ 		{
+-			userStr++;
++			userStr = userStr + 2;
+ 		}
+ 	}
+ 
+@@ -100,7 +117,7 @@
+ 			DEBUG_Msg("Trying to extract script from PATH_INFO");
+ 
+ 			scrStr = StripPathComponents(1,pathInfoString);
+-			if ( ! strlen(scrStr) ) { scrStr = 0; }
++			if ( ! strlen(scrStr) ) { scrStr = StripPathComponents(0,pathInfoString); }
+ 
+ 			DEBUG_Str("Extracted PATH_INFO", scrStr);
+ 		}
