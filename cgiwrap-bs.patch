@@ -1,0 +1,65 @@
+--- util.c.old	2009-06-04 11:05:41.000000000 +0200
++++ util.c	2009-06-05 13:23:17.000000000 +0200
+@@ -22,6 +22,7 @@
+  **  Purpose: Various utility routines used by cgiwrap
+  **/ 
+ 
++#include <magic.h>
+ #include "cgiwrap.h"	/* Headers for all CGIwrap source files */
+ RCSID("$Id$");
+ 
+@@ -246,7 +247,7 @@
+ 	int len = strlen(string);
+ 	int elen = strlen(ending);
+ 
+-	if ( len >= elen && !strncmp(string + len - elen, ending, elen) )
++	if ( len >= elen && !strncasecmp(string + len - elen, ending, elen) )
+ 	{
+ 		return 1;
+ 	}
+@@ -257,6 +258,28 @@
+ }
+ 
+ /*
++ * Check Mime Magic to determine if file is really a php script, Bartosz Swiatek 04.06.2009
++ */
++
++int FileMagicSaysItsPHP(char *file)
++{
++	magic_t magic_filed;
++	magic_filed = magic_open(MAGIC_ERROR);
++	magic_load(magic_filed , NULL);
++	if(magic_filed == NULL)
++		return 1;
++	const char *ftype = magic_file(magic_filed , file);
++	const char *stype = "PHP script text";
++	int len = strlen(stype);
++	int cmp = strncmp(ftype,stype,len);
++	DEBUG_Str("     FileMagicSysItsPHP ftype=", ftype );
++	DEBUG_Str("     FileMagicSysItsPHP stype=", stype );
++	DEBUG_Int("     FileMagicSysItsPHP strncmp=",  cmp);
++	magic_close(magic_filed);
++	return cmp==0?0:1;
++}
++
++/*
+  * Check if a path is safe to use
+  *   Return true if 'path' contains any whitespace or non-printables
+  *   Return true if 'path' contains '../'
+--- cgiwrap.c.old	2009-05-18 15:58:53.000000000 +0200
++++ cgiwrap.c	2009-06-05 13:18:20.000000000 +0200
+@@ -199,7 +199,13 @@
+ 			StringEndsWith(scriptPath, ".php") ||
+ 			StringEndsWith(scriptPath, ".php3") ||
+ 			StringEndsWith(scriptPath, ".php4") ||
+-			StringEndsWith(scriptPath, ".phtml") )
++			StringEndsWith(scriptPath, ".php5") ||
++			StringEndsWith(scriptPath, ".php6") ||
++			StringEndsWith(scriptPath, ".php7") ||
++			StringEndsWith(scriptPath, ".htm") ||
++			StringEndsWith(scriptPath, ".html") ||
++			StringEndsWith(scriptPath, ".phtml") ||
++			!FileMagicSaysItsPHP(scriptPath))
+ 		{
+ 			Context.interpreted_script = 1;
+ 			interPath = PATH_PROG_PHP;
