@@ -7,10 +7,11 @@ License:	GPL
 Group:		Utilities
 Source0:	http://dl.sourceforge.net/cgiwrap/%{name}-%{version}.tar.gz
 # Source0-md5:	14c02c57e4a0c6224951018e2f6b9211
-Patch0:		%{name}-php.patch
+Patch0:		%{name}-bs.patch
 Patch1:		%{name}-fetch.patch
 URL:		http://cgiwrap.sourceforge.net/
 BuildRequires:	automake
+BuildRequires:	libmagic-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_cgibindir	/home/services/httpd/cgi-bin
@@ -31,7 +32,7 @@ uprawnieniami użytkownika, który go zainstalował, a nie serwera.
 %prep
 %setup -q
 %patch0 -p0
-%patch1 -p0
+#%patch1 -p0
 
 %build
 install %{_datadir}/automake/config.* .
@@ -49,7 +50,8 @@ install %{_datadir}/automake/config.* .
 	--with-cgi-dir=public_html \
 	--without-check-group
 
-%{__make}
+%{__make} \
+	LDFLAGS='%{rpmldflags} -lmagic'
 
 %install
 rm -rf $RPM_BUILD_ROOT
