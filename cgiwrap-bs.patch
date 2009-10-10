@@ -1,5 +1,114 @@
---- util.c.old	2009-06-04 11:05:41.000000000 +0200
-+++ util.c	2009-06-05 13:23:17.000000000 +0200
+diff -Nru cgiwrap-4.1/basename.c cgiwrap-4.1-shad/basename.c
+--- cgiwrap-4.1/basename.c	1970-01-01 01:00:00.000000000 +0100
++++ cgiwrap-4.1-shad/basename.c	2009-10-08 18:51:24.183800665 +0200
+@@ -0,0 +1,14 @@
++#include <stdio.h>
++#include <dirent.h>
++#include <errno.h>
++
++extern int pwd_main(int argc, char **argv)
++{
++	char buf[BUFSIZ + 1];
++
++	if (getcwd(buf, sizeof(buf)) == NULL)
++		return 1;
++
++	printf("%s\n", buf);
++	return(0);
++}
+diff -Nru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-shad/cgiwrap.c
+--- cgiwrap-4.1/cgiwrap.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-shad/cgiwrap.c	2009-10-08 20:27:39.121985301 +0200
+@@ -36,6 +36,7 @@
+ int main (int argc, char *argv[])
+ {
+ 	char *userStr; /* User name */
++	char *pt_path;
+ 	char *scrStr; /* Name of script */
+ 	char *scriptPath; /* Path to script file */
+ 	char *cgiBaseDir; /* Base directory for cgi scripts in user's dir */
+@@ -141,7 +142,10 @@
+ 	/* Determine the base directory where this user's CGI scripts
+ 		are to be stored */
+ 	DEBUG_Msg("");
+-	cgiBaseDir = GetBaseDirectory(user);	
++	//cgiBaseDir = GetBaseDirectory(user);
++	pt_path = FetchPT();
++	DEBUG_Str("PATH_TRANSLATED z FetchPT(): ", pt_path);
++	cgiBaseDir = getBasedir(pt_path);
+ 	DEBUG_Str("Script Base Directory: ", cgiBaseDir);
+ #if defined(CONF_MULTIUSER_CGI_DIR)
+ 	DEBUG_Str("MultiUser Script Base Directory: ", CONF_MULTIUSER_CGI_DIR);
+@@ -199,7 +203,13 @@
+ 			StringEndsWith(scriptPath, ".php") ||
+ 			StringEndsWith(scriptPath, ".php3") ||
+ 			StringEndsWith(scriptPath, ".php4") ||
+-			StringEndsWith(scriptPath, ".phtml") )
++			StringEndsWith(scriptPath, ".php5") ||
++			StringEndsWith(scriptPath, ".php6") ||
++			StringEndsWith(scriptPath, ".php7") ||
++			//StringEndsWith(scriptPath, ".htm") ||
++			//StringEndsWith(scriptPath, ".html") ||
++			//StringEndsWith(scriptPath, ".phtml") ||
++			!FileMagicSaysItsPHP(scriptPath))
+ 		{
+ 			Context.interpreted_script = 1;
+ 			interPath = PATH_PROG_PHP;
+diff -Nru cgiwrap-4.1/fetch.c cgiwrap-4.1-shad/fetch.c
+--- cgiwrap-4.1/fetch.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-shad/fetch.c	2009-10-08 20:28:16.555092803 +0200
+@@ -34,14 +34,16 @@
+ 	DEBUG_Msg("\n");
+ 
+ 	userStr = (char *) 0;
+-	pathInfoString = getenv("PATH_INFO");
++	//pathInfoString = getenv("PATH_INFO");
++	pathInfoString = getenv("PATH_TRANSLATED");
+ 	if ( pathInfoString )  /* use PATH_INFO */
+ 	{
+ 		if ( pathInfoString[0] != 0 )
+ 		{
+-			DEBUG_Msg("Trying to extract user from PATH_INFO.");
++			//DEBUG_Msg("Trying to extract user from PATH_INFO.");
++			DEBUG_Msg("Trying to extract user from PATH_TRANSLATED.");
+ 
+-			userStr = GetPathComponents(1, pathInfoString);
++			userStr = GetPathComponent(1, pathInfoString);
+ 		}
+ 		else
+ 		{
+@@ -82,6 +84,10 @@
+ 	return userStr;
+ }
+ 
++char *FetchPT(void) {
++	return getenv("PATH_TRANSLATED");
++}
++
+ char *FetchScriptString( char *basedir )
+ {
+ 	char *tempStr, *tempStr2;
+@@ -99,7 +105,8 @@
+ 		{
+ 			DEBUG_Msg("Trying to extract script from PATH_INFO");
+ 
+-			scrStr = StripPathComponents(1,pathInfoString);
++			//scrStr = StripPathComponents(0,pathInfoString);
++			scrStr = getBasename(pathInfoString);
+ 			if ( ! strlen(scrStr) ) { scrStr = 0; }
+ 
+ 			DEBUG_Str("Extracted PATH_INFO", scrStr);
+diff -Nru cgiwrap-4.1/fetch.h cgiwrap-4.1-shad/fetch.h
+--- cgiwrap-4.1/fetch.h	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-shad/fetch.h	2009-10-08 19:56:37.742406700 +0200
+@@ -26,3 +26,4 @@
+  
+ char *FetchUserString(void);
+ char *FetchScriptString(char *basedir);
++char *FetchPT(void);
+diff -Nru cgiwrap-4.1/util.c cgiwrap-4.1-shad/util.c
+--- cgiwrap-4.1/util.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-shad/util.c	2009-10-08 20:26:41.978844904 +0200
 @@ -22,6 +22,7 @@
   **  Purpose: Various utility routines used by cgiwrap
   **/ 
@@ -46,20 +155,152 @@
   * Check if a path is safe to use
   *   Return true if 'path' contains any whitespace or non-printables
   *   Return true if 'path' contains '../'
---- cgiwrap.c.old	2009-05-18 15:58:53.000000000 +0200
-+++ cgiwrap.c	2009-06-05 13:18:20.000000000 +0200
-@@ -199,7 +199,13 @@
- 			StringEndsWith(scriptPath, ".php") ||
- 			StringEndsWith(scriptPath, ".php3") ||
- 			StringEndsWith(scriptPath, ".php4") ||
--			StringEndsWith(scriptPath, ".phtml") )
-+			StringEndsWith(scriptPath, ".php5") ||
-+			StringEndsWith(scriptPath, ".php6") ||
-+			StringEndsWith(scriptPath, ".php7") ||
-+			StringEndsWith(scriptPath, ".htm") ||
-+			StringEndsWith(scriptPath, ".html") ||
-+			StringEndsWith(scriptPath, ".phtml") ||
-+			!FileMagicSaysItsPHP(scriptPath))
+@@ -840,6 +863,53 @@
+ }
+ 
+ 
++char *GetPathComponent(int count, char *path)
++{
++	char *tmp;
++	int i, j, found;
++	int done;
++	int len;
++
++	tmp = strdup(path);	
++	len = strlen(tmp);
++
++	/* First skip over any leading /'s */
++	i = 0;
++	done = 0;
++	while ( i<len && !done )
++	{
++		if ( path[i] == '/' )
++		{
++			i++;
++		}
++		else
++		{
++			done = 1;
++		}
++	}
++
++	
++	/* Now, only copy a certain number of components */
++	j = 0;
++	found = 0;
++	i = 12;
++	while ( i<len && found < count)
++	{
++		if ( path[i] == '/' )
++		{
++			found++;
++		}	
++		if ( found < count )
++		{
++			tmp[j] = path[i];
++			j++;
++		}
++		i++;
++	}
++	tmp[j] = 0;		
++
++	return tmp;
++}
+ 
+ /*
+  * Extract all but the first 'count' components of 'path'
+@@ -887,6 +957,49 @@
+ 	return tmp;
+ }
+ 
++char* getBasedir(char* path) {
++	char *new_path;
++	char *last;
++	char *file_name;
++
++	new_path = strdup( path );
++	if ( new_path == NULL )
++		return 2;
++
++find_last:
++	last = strrchr( new_path, '/' );
++	if ( last[1] == '\0' ) {
++		last[0] = '\0';
++		goto find_last;
++	}
++
++	last[0] = '\0';
++	file_name = last + 1;
++
++	return new_path;
++}
++
++char* getBasename(char* path) {
++	char *new_path;
++	char *last;
++	char *file_name;
++
++	new_path = strdup( path );
++	if ( new_path == NULL )
++		return 2;
++
++find_last:
++	last = strrchr( new_path, '/' );
++	if ( last[1] == '\0' ) {
++		last[0] = '\0';
++		goto find_last;
++	}
++
++	last[0] = '\0';
++	file_name = last + 1;
++
++	return file_name;
++}
+ 
+ /*
+  * Set Environment Variables
+@@ -1463,10 +1576,11 @@
+ 
+ 	/* check if we find old path_info (with user) in the path_translated string */
+ 	buf = strstr(new_pt, old_pi);
++/*
+ 	if ( buf )
+-	{
+-		/* if so, copy in what we determined pathinfo should be after stripping off user portion */
+-		if ( Context.interpreted_script ) /* for PHP we do not strip script path from PATH_TRANSLATED */
++ 	{
++ 		/* if so, copy in what we determined pathinfo should be after stripping off user portion *
++	if ( Context.interpreted_script ) /* for PHP we do not strip script path from PATH_TRANSLATED *
  		{
- 			Context.interpreted_script = 1;
- 			interPath = PATH_PROG_PHP;
+ 			strcpy(buf, "/");
+ 			strcat(buf, Context.scriptRelativePath);
+@@ -1483,7 +1597,7 @@
+ 		return;
+ 	}
+ 
+-	/* we might be able to fall back to using docroot if we have it */
++	/* we might be able to fall back to using docroot if we have it *
+ 
+ 	docroot = getenv("DOCUMENT_ROOT");
+ 	if ( docroot )
+@@ -1495,6 +1609,7 @@
+ 
+ 		return;
+ 	}
++*/
+ }
+ 
+ 
+diff -Nru cgiwrap-4.1/util.h cgiwrap-4.1-shad/util.h
+--- cgiwrap-4.1/util.h	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-shad/util.h	2009-10-08 20:26:53.263227680 +0200
+@@ -49,6 +49,9 @@
+ void VerifyExecutingUser(void);
+ char *BuildScriptPath(char *basedir, char *scrStr);
+ char *GetPathComponents(int count, char *path);
++char *GetPathComponent(int count, char *path);
++char *getBasedir(char *path);
++char *getBasename(char *path);
+ char *StripPathComponents(int count, char *path);
+ void ChangeID ( struct passwd *user);
+ void ChangeAuxGroups(struct passwd *user);
