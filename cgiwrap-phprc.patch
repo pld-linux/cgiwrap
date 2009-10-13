@@ -1,0 +1,28 @@
+--- fetch.c	2009-10-13 03:28:00.734065077 +0200
++++ fetch.c-new	2009-10-13 03:28:17.407378494 +0200
+@@ -30,10 +30,13 @@
+ 	char *pathInfoString;
+ 	char *queryString;
+ 	char *userStr;
++	char *phprc;
++	char *phpdir;
+ 
+ 	DEBUG_Msg("\n");
+ 
+ 	userStr = (char *) 0;
++	phpdir = "/etc/php/users.d/";
+ 	//pathInfoString = getenv("PATH_INFO");
+ 	pathInfoString = getenv("PATH_TRANSLATED");
+ 	if ( pathInfoString )  /* use PATH_INFO */
+@@ -44,6 +47,11 @@
+ 			DEBUG_Msg("Trying to extract user from PATH_TRANSLATED.");
+ 
+ 			userStr = GetPathComponent(1, pathInfoString);
++			phprc = (char *)malloc((strlen(phpdir) + strlen(userStr) + 1) *sizeof(char));
++			strcpy (phprc , phpdir);
++			strcat (phprc , userStr);
++			setenv("PHPRC", phprc, 1);
++			DEBUG_Str("Setting PHPRC to ", phprc);
+ 		}
+ 		else
+ 		{
