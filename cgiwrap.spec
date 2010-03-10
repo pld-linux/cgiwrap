@@ -2,7 +2,7 @@ Summary:	A gateway for more secure user access to CGI scripts
 Summary(pl.UTF-8):	Bramka do bezpieczniejszego dostępu użytkowników do skryptów CGI
 Name:		cgiwrap
 Version:	4.1
-Release:	5
+Release:	6
 License:	GPL
 Group:		Utilities
 Source0:	http://dl.sourceforge.net/cgiwrap/%{name}-%{version}.tar.gz
@@ -49,7 +49,8 @@ install %{_datadir}/automake/config.* .
 	--with-soft-rlimit-only \
 	--with-cgi-dir=public_html \
 	--without-check-symlink \
-	--without-check-group
+	--without-check-group \
+	--with-use-script-url
 
 %{__make} \
 	LDFLAGS='%{rpmldflags} -lmagic'
