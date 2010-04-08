@@ -1,0 +1,229 @@
+diff -ur cgiwrap-4.1/config.h.in cgiwrap-4.1-bs/config.h.in
+--- cgiwrap-4.1/config.h.in	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/config.h.in	2010-04-08 03:06:39.605240484 +0200
+@@ -114,6 +114,9 @@
+ /* support a shared multi-user cgi directory */
+ #undef CONF_MULTIUSER_CGI_DIR
+ 
++/* custom html error pages */
++#undef CONF_CUSTOMHTMLERR
++
+ /* pass script to php interpreter if suffix */
+ #undef CONF_PHP_INTERPRETER
+ 
+diff -ur cgiwrap-4.1/configure.in cgiwrap-4.1-bs/configure.in
+--- cgiwrap-4.1/configure.in	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/configure.in	2010-04-07 22:56:50.905243224 +0200
+@@ -584,6 +584,25 @@
+ 		AC_DEFINE_UNQUOTED(CONF_CGIDIR,"public_html/cgi-bin", [cgi dir relative to user home dir])
+ 	])
+ 
++AC_MSG_CHECKING(for path to html error pages)
++AC_ARG_WITH( custom-html-errors, 
++	[  --with-custom-html-errors=PATH  (disabled)]
++	[  path where you want to store your custom error pages], 
++	[ 
++		if test "x$withval" = xyes; then
++			AC_MSG_RESULT([must specify path, disabled.])
++		elif test "x$withval" = xno; then
++			AC_MSG_RESULT([must specify path, disabled.])
++		elif test "x$withval" = x; then
++			AC_MSG_RESULT([must specify path, disabled.])
++		else
++			AC_MSG_RESULT([$withval])
++			AC_DEFINE_UNQUOTED(CONF_CUSTOMHTMLERR, "$withval", [path to custom html error pages])
++		fi
++	],
++	[ 
++		AC_MSG_RESULT([disabled.])
++	])
+ 
+ dnl
+ dnl Checking for what server userid cgiwrap will run as
+diff -ur cgiwrap-4.1/msgs.c cgiwrap-4.1-bs/msgs.c
+--- cgiwrap-4.1/msgs.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/msgs.c	2010-04-08 03:14:14.343509137 +0200
+@@ -127,6 +127,30 @@
+ 	exit(1);
+ }
+ 
++#if defined(CONF_CUSTOMHTMLERR)
++void Show_Custom_Html_Error(char *page)
++{
++	FILE *file;
++	char *read;
++	int ch;
++	//char *path = "/etc/cgiwrap/";
++	char *filename = BuildScriptPath(CONF_CUSTOMHTMLERR,page);
++	//char *filename = BuildScriptPath(path,page);
++	MSG_ContentType("text/html");
++	file = fopen(filename, "r");
++	if(file==NULL) {
++		printf("Error: can't open file.\n");
++		exit(1);
++	} else {
++		while ((ch = getc(file)) != EOF)
++			putc(ch,stdout);
++		//printf("%s", read);
++		fclose(file);
++	}
++	exit(1);
++}
++#endif
++
+ void MSG_Info(void)
+ {
+ 	char *prefix_html = "<DD><B>";
+@@ -357,6 +381,9 @@
+ 
+ void MSG_Error_CGIWrapNotSetUID(void)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("CGIWrapNotSetUID.html");
++#else
+ 	if ( MSG_QuietErrors )
+ 	{
+ 		MSG_Error_ServerConfigError();
+@@ -376,11 +403,15 @@
+ 	    MSG_Footer();
+ 	    exit(1);
+ 	}
++#endif
+ }
+ 
+ 
+ void MSG_Error_ServerUserMismatch(void)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("ServerUserMismatch.html");
++#else
+ 	if ( MSG_QuietErrors )
+ 	{
+ 		MSG_Error_ServerConfigError();
+@@ -399,11 +430,15 @@
+ 		MSG_Footer();
+ 		exit(1);
+ 	}
++#endif
+ }
+ 
+ 
+ void MSG_Error_ServerUserNotFound(void)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("ServerUserNotFound.html");
++#else
+ 	if ( MSG_QuietErrors )
+ 	{
+ 		MSG_Error_ServerConfigError();
+@@ -452,11 +487,15 @@
+ 	MSG_Footer();
+ 	exit(1);
+ 	}
++#endif
+ }
+ 
+ 
+ void MSG_Error_ExecutionNotPermitted(char *path, char *reason)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("ExecutionNotPermitted.html");
++#else
+ 	MSG_Header("CGIWrap Error", "Execution of this script not permitted");
+ 
+ 	if ( MSG_QuietErrors )
+@@ -487,10 +526,14 @@
+ 
+ 	MSG_Footer();
+ 	exit(1);
++#endif
+ }
+ 
+ void MSG_Error_AccessControl(char *why, char *allowfile, char *denyfile)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("AccessControl.html");
++#else
+ 
+ 	if ( MSG_QuietErrors )
+ 	{
+@@ -526,10 +569,14 @@
+ 		MSG_Footer();
+ 	}
+ 	exit(1);
++#endif
+ }
+ 
+ void MSG_Error_SystemError(char *when)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("SystemError.html");
++#else
+ 	MSG_Header("CGIWrap Error", "System Error");
+ 	printf("CGIWrap encountered a system error.\n");
+ 
+@@ -561,11 +608,15 @@
+ 	
+ 	MSG_Footer();
+ 	exit(1);
++#endif
+ }
+ 
+ 
+ void MSG_Error_ExecFailed(void)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("ExecFailed.html");
++#else
+ 	MSG_Header("CGIWrap Error", "Script Execution Failed");
+ 
+ 	printf("CGIWrap encountered an error while attempting to execute\n");
+@@ -621,10 +672,14 @@
+ 	
+ 	MSG_Footer();
+ 	exit(1);
++#endif
+ }
+ 
+ void MSG_Error_NoSuchUser(char *user)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("NoSuchUser.html");
++#else
+ 	if ( MSG_QuietErrors )
+ 	{
+ 		MSG_Error_RequestError();
+@@ -645,10 +700,14 @@
+ 	MSG_Footer();
+ 	exit(1);
+ 	}
++#endif
+ }
+ 
+ void MSG_Error_NoScriptDir(void)
+ {
++#if defined(CONF_CUSTOMHTMLERR)
++	Show_Custom_Html_Error("NoScriptDir.html");
++#else
+ 	if ( MSG_QuietErrors )
+ 	{
+ 		MSG_Error_RequestError();
+@@ -663,6 +722,7 @@
+ 	}
+ 	MSG_Footer();
+ 	exit(1);
++#endif
+ }
+ 
+ void MSG_Error_ServerConfigError(void)
+diff -ur cgiwrap-4.1/msgs.h cgiwrap-4.1-bs/msgs.h
+--- cgiwrap-4.1/msgs.h	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/msgs.h	2010-04-07 22:56:50.905243224 +0200
+@@ -28,6 +28,7 @@
+ extern int MSG_QuietErrors;
+ extern int MSG_Need_NPH_Header;
+ 
++void Show_Custom_Html_Error(char *page);
+ void MSG_ContentType(char *typestring);
+ void MSG_Header(char *title, char *msg);
+ void MSG_Footer(void);
