@@ -1,24 +1,7 @@
-diff -Nru cgiwrap-4.1/basename.c cgiwrap-4.1-shad/basename.c
---- cgiwrap-4.1/basename.c	1970-01-01 01:00:00.000000000 +0100
-+++ cgiwrap-4.1-shad/basename.c	2009-10-08 18:51:24.183800665 +0200
-@@ -0,0 +1,14 @@
-+#include <stdio.h>
-+#include <dirent.h>
-+#include <errno.h>
-+
-+extern int pwd_main(int argc, char **argv)
-+{
-+	char buf[BUFSIZ + 1];
-+
-+	if (getcwd(buf, sizeof(buf)) == NULL)
-+		return 1;
-+
-+	printf("%s\n", buf);
-+	return(0);
-+}
-diff -Nru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-shad/cgiwrap.c
+Only in cgiwrap-4.1-fixpyrocms/: basename.c
+diff -ru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-fixpyrocms//cgiwrap.c
 --- cgiwrap-4.1/cgiwrap.c	2008-06-16 16:34:37.000000000 +0200
-+++ cgiwrap-4.1-shad/cgiwrap.c	2009-10-08 20:27:39.121985301 +0200
++++ cgiwrap-4.1-fixpyrocms//cgiwrap.c	2010-04-20 12:50:57.405649032 +0200
 @@ -36,6 +36,7 @@
  int main (int argc, char *argv[])
  {
@@ -39,7 +22,18 @@ diff -Nru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-shad/cgiwrap.c
  	DEBUG_Str("Script Base Directory: ", cgiBaseDir);
  #if defined(CONF_MULTIUSER_CGI_DIR)
  	DEBUG_Str("MultiUser Script Base Directory: ", CONF_MULTIUSER_CGI_DIR);
-@@ -199,7 +203,13 @@
+@@ -151,7 +155,9 @@
+ 	if ( !DirExists(cgiBaseDir) )
+ #endif
+ 	{
+-		MSG_Error_NoScriptDir();
++		cgiBaseDir = GetBaseDirectory(user);
++		DEBUG_Str("Script Base Directory2: ", cgiBaseDir);
++		//MSG_Error_NoScriptDir();
+ 	}
+ 
+ 	/* Get the script name from the given data */
+@@ -199,7 +205,13 @@
  			StringEndsWith(scriptPath, ".php") ||
  			StringEndsWith(scriptPath, ".php3") ||
  			StringEndsWith(scriptPath, ".php4") ||
@@ -54,9 +48,9 @@ diff -Nru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-shad/cgiwrap.c
  		{
  			Context.interpreted_script = 1;
  			interPath = PATH_PROG_PHP;
-diff -Nru cgiwrap-4.1/fetch.c cgiwrap-4.1-shad/fetch.c
+diff -ru cgiwrap-4.1/fetch.c cgiwrap-4.1-fixpyrocms//fetch.c
 --- cgiwrap-4.1/fetch.c	2008-06-16 16:34:37.000000000 +0200
-+++ cgiwrap-4.1-shad/fetch.c	2009-10-08 20:28:16.555092803 +0200
++++ cgiwrap-4.1-fixpyrocms//fetch.c	2010-04-20 12:52:29.176664704 +0200
 @@ -34,14 +34,16 @@
  	DEBUG_Msg("\n");
  
@@ -93,22 +87,23 @@ diff -Nru cgiwrap-4.1/fetch.c cgiwrap-4.1-shad/fetch.c
  			DEBUG_Msg("Trying to extract script from PATH_INFO");
  
 -			scrStr = StripPathComponents(1,pathInfoString);
-+			//scrStr = StripPathComponents(0,pathInfoString);
-+			scrStr = getBasename(pathInfoString);
++			scrStr = StripPathComponents(0,pathInfoString);
++			//scrStr = getBasename(pathInfoString);
  			if ( ! strlen(scrStr) ) { scrStr = 0; }
  
  			DEBUG_Str("Extracted PATH_INFO", scrStr);
-diff -Nru cgiwrap-4.1/fetch.h cgiwrap-4.1-shad/fetch.h
+Only in cgiwrap-4.1-fixpyrocms/: fetch.c~
+diff -ru cgiwrap-4.1/fetch.h cgiwrap-4.1-fixpyrocms//fetch.h
 --- cgiwrap-4.1/fetch.h	2008-06-16 16:34:37.000000000 +0200
-+++ cgiwrap-4.1-shad/fetch.h	2009-10-08 19:56:37.742406700 +0200
++++ cgiwrap-4.1-fixpyrocms//fetch.h	2010-04-20 12:49:12.749949235 +0200
 @@ -26,3 +26,4 @@
   
  char *FetchUserString(void);
  char *FetchScriptString(char *basedir);
 +char *FetchPT(void);
-diff -Nru cgiwrap-4.1/util.c cgiwrap-4.1-shad/util.c
+diff -ru cgiwrap-4.1/util.c cgiwrap-4.1-fixpyrocms//util.c
 --- cgiwrap-4.1/util.c	2008-06-16 16:34:37.000000000 +0200
-+++ cgiwrap-4.1-shad/util.c	2009-10-08 20:26:41.978844904 +0200
++++ cgiwrap-4.1-fixpyrocms//util.c	2010-04-20 12:54:42.331388860 +0200
 @@ -22,6 +22,7 @@
   **  Purpose: Various utility routines used by cgiwrap
   **/ 
@@ -144,9 +139,9 @@ diff -Nru cgiwrap-4.1/util.c cgiwrap-4.1-shad/util.c
 +	const char *stype = "PHP script text";
 +	int len = strlen(stype);
 +	int cmp = strncmp(ftype,stype,len);
-+	DEBUG_Str("     FileMagicSysItsPHP ftype=", ftype );
-+	DEBUG_Str("     FileMagicSysItsPHP stype=", stype );
-+	DEBUG_Int("     FileMagicSysItsPHP strncmp=",  cmp);
++	DEBUG_Str("     FileMagicSaysItsPHP ftype=", ftype );
++	DEBUG_Str("     FileMagicSaysItsPHP stype=", stype );
++	DEBUG_Int("     FileMagicSaysItsPHP strncmp=",  cmp);
 +	magic_close(magic_filed);
 +	return cmp==0?0:1;
 +}
@@ -291,9 +286,9 @@ diff -Nru cgiwrap-4.1/util.c cgiwrap-4.1-shad/util.c
  }
  
  
-diff -Nru cgiwrap-4.1/util.h cgiwrap-4.1-shad/util.h
+diff -ru cgiwrap-4.1/util.h cgiwrap-4.1-fixpyrocms//util.h
 --- cgiwrap-4.1/util.h	2008-06-16 16:34:37.000000000 +0200
-+++ cgiwrap-4.1-shad/util.h	2009-10-08 20:26:53.263227680 +0200
++++ cgiwrap-4.1-fixpyrocms//util.h	2010-04-20 12:49:12.753491266 +0200
 @@ -49,6 +49,9 @@
  void VerifyExecutingUser(void);
  char *BuildScriptPath(char *basedir, char *scrStr);
