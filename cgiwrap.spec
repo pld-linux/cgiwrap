@@ -7,9 +7,10 @@ License:	GPL
 Group:		Utilities
 Source0:	http://dl.sourceforge.net/cgiwrap/%{name}-%{version}.tar.gz
 # Source0-md5:	14c02c57e4a0c6224951018e2f6b9211
-Patch0:		%{name}-bs.patch
-Patch1:		%{name}-phprc.patch
-Patch2:		%{name}-customhtmlerrors.patch
+Patch0:		%{name}-mime_magic.patch
+Patch1:		%{name}-bs.patch
+Patch2:		%{name}-phprc.patch
+Patch3:		%{name}-customhtmlerrors.patch
 URL:		http://cgiwrap.sourceforge.net/
 BuildRequires:	automake
 BuildRequires:	libmagic-devel
@@ -33,8 +34,9 @@ uprawnieniami użytkownika, który go zainstalował, a nie serwera.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p0
-%patch2 -p1
+%patch1 -p1
+%patch2 -p0
+%patch3 -p1
 
 %build
 install %{_datadir}/automake/config.* .
