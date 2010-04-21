@@ -1,0 +1,65 @@
+diff -ru cgiwrap-4.1/cgiwrap.c cgiwrap-4.1-bs/cgiwrap.c
+--- cgiwrap-4.1/cgiwrap.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/cgiwrap.c	2010-04-21 15:56:07.517357390 +0200
+@@ -199,7 +199,11 @@
+ 			StringEndsWith(scriptPath, ".php") ||
+ 			StringEndsWith(scriptPath, ".php3") ||
+ 			StringEndsWith(scriptPath, ".php4") ||
+-			StringEndsWith(scriptPath, ".phtml") )
++			StringEndsWith(scriptPath, ".php5") ||
++			StringEndsWith(scriptPath, ".php6") ||
++			StringEndsWith(scriptPath, ".php7") ||
++			StringEndsWith(scriptPath, ".phtml") ||
++			!FileMagicSaysItsPHP(scriptPath))
+ 		{
+ 			Context.interpreted_script = 1;
+ 			interPath = PATH_PROG_PHP;
+diff -ru cgiwrap-4.1/util.c cgiwrap-4.1-bs/util.c
+--- cgiwrap-4.1/util.c	2008-06-16 16:34:37.000000000 +0200
++++ cgiwrap-4.1-bs/util.c	2010-04-21 16:00:40.223979033 +0200
+@@ -22,6 +22,7 @@
+  **  Purpose: Various utility routines used by cgiwrap
+  **/ 
+ 
++#include <magic.h>
+ #include "cgiwrap.h"	/* Headers for all CGIwrap source files */
+ RCSID("$Id$");
+ 
+@@ -246,7 +247,7 @@
+ 	int len = strlen(string);
+ 	int elen = strlen(ending);
+ 
+-	if ( len >= elen && !strncmp(string + len - elen, ending, elen) )
++	if ( len >= elen && !strncasecmp(string + len - elen, ending, elen) )
+ 	{
+ 		return 1;
+ 	}
+@@ -257,6 +258,28 @@
+ }
+ 
+ /*
++* Check Mime Magic to determine if file is really a php script, Bartosz Swiatek 04.06.2009
++*/
++
++int FileMagicSaysItsPHP(char *file)
++{
++	magic_t magic_filed;
++	magic_filed = magic_open(MAGIC_ERROR);
++	magic_load(magic_filed , NULL);
++	if(magic_filed == NULL)
++		return 1;
++	const char *ftype = magic_file(magic_filed , file);
++	const char *stype = "PHP script text";
++	int len = strlen(stype);
++	int cmp = strncmp(ftype,stype,len);
++	DEBUG_Str("     FileMagicSaysItsPHP ftype=", ftype );
++	DEBUG_Str("     FileMagicSaysItsPHP stype=", stype );
++	DEBUG_Int("     FileMagicSaysItsPHP strncmp=",  cmp);
++	magic_close(magic_filed);
++	return cmp==0?0:1;
++}
++
++/*
+  * Check if a path is safe to use
+  *   Return true if 'path' contains any whitespace or non-printables
+  *   Return true if 'path' contains '../'
