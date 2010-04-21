@@ -1,5 +1,5 @@
---- fetch.c	2009-10-13 03:28:00.734065077 +0200
-+++ fetch.c-new	2009-10-13 03:28:17.407378494 +0200
+--- fetch.c.orig	2010-04-21 16:22:19.904682203 +0200
++++ fetch.c	2010-04-21 16:24:39.937167976 +0200
 @@ -30,10 +30,13 @@
  	char *pathInfoString;
  	char *queryString;
@@ -17,7 +17,7 @@
 @@ -44,6 +47,11 @@
  			DEBUG_Msg("Trying to extract user from PATH_TRANSLATED.");
  
- 			userStr = GetPathComponent(1, pathInfoString);
+ 			userStr = GetPathComponents(1, pathInfoString);
 +			phprc = (char *)malloc((strlen(phpdir) + strlen(userStr) + 1) *sizeof(char));
 +			strcpy (phprc , phpdir);
 +			strcat (phprc , userStr);
