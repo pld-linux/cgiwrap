@@ -12,6 +12,7 @@ Patch1:		%{name}-bs.patch
 Patch2:		%{name}-phprc.patch
 Patch3:		%{name}-customhtmlerrors.patch
 URL:		http://cgiwrap.sourceforge.net/
+BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libmagic-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
